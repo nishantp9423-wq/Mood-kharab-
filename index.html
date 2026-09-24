@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -126,6 +125,21 @@
     animation: slideDown 0.3s ease;
   }
 
+  .other-input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    border: 2px solid #0F172A;
+    border-radius: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    transition: box-shadow 0.2s;
+  }
+  .other-input:focus {
+    outline: none;
+    box-shadow: 3px 3px 0px var(--secondary);
+  }
+
   @keyframes slideDown {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
@@ -152,7 +166,6 @@
     background: #fff;
   }
 
-  /* Slider Styling */
   input[type=range] { 
     width: 100%; 
     accent-color: var(--secondary); 
@@ -236,8 +249,11 @@
     padding: 30px 24px;
     text-align: center;
     max-width: 400px;
+    width: 100%;
     transform: scale(0.9);
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    max-height: 90vh;
+    overflow-y: auto;
   }
   .modal-overlay.active .modal-content {
     transform: scale(1);
@@ -245,11 +261,30 @@
   .modal-content h3 { font-size: 1.5rem; color: var(--secondary); margin-bottom: 12px;}
   .modal-content p { font-size: 1.1rem; font-weight: 600; line-height: 1.5; margin-bottom: 24px;}
 
-  .dog-emoji {
+  #copiedTextDisplay {
+    background: #F1F5F9; 
+    padding: 14px; 
+    border-radius: 12px; 
+    font-size: 0.95rem; 
+    text-align: left; 
+    white-space: pre-wrap; 
+    margin-bottom: 24px; 
+    border: 2px solid #CBD5E1;
+    font-weight: 500;
+    color: var(--text-main);
+  }
+
+  .falling-emoji {
     position: fixed;
-    z-index: 999;
+    z-index: 9999;
     pointer-events: none;
     user-select: none;
+    top: -50px;
+    animation: fall linear forwards;
+  }
+
+  @keyframes fall {
+    to { transform: translateY(120vh) rotate(360deg); }
   }
 </style>
 </head>
@@ -329,6 +364,14 @@
           <div class="quirky-hint">Arre itne golu molu hathon pairon par dard hoga toh madam kaise chalega? Lagta hai Virtual Foot Massage automatically select karna padega as a solution! 🥺💆‍♀️</div>
         </label>
 
+        <label class="choice-container">
+          <div class="choice"><input type="checkbox" value="Others" id="otherCheckbox"> Others (Kuch aur hi chal raha hai)</div>
+          <div class="quirky-hint">
+            Koi nai, batao batao kisne dimaag kharab kiya hai? 🕵️‍♂️
+            <input type="text" id="otherText" class="other-input" placeholder="Gussa yahan type karo...">
+          </div>
+        </label>
+
       </div>
     </div>
 
@@ -347,6 +390,7 @@
     <h2 style="margin-bottom:20px; color: var(--primary);">Report Generate Ho Gayi Ji! 📝</h2>
     <div id="reviewBody"></div>
     <button class="btn whatsapp" id="sendBtn">Bhejo WhatsApp pe 💬</button>
+    <!-- Trigger for the new big modal -->
     <button class="btn secondary" onclick="copyResult()">Copy kar lo (If WhatsApp fails)</button>
     <div class="note" id="copyNote"></div>
   </div>
@@ -355,6 +399,7 @@
 
 </div>
 
+<!-- Dog Trap Modal -->
 <div id="dogModal" class="modal-overlay">
   <div class="modal-content">
     <h3>Ruk jao! 🛑</h3>
@@ -363,8 +408,17 @@
   </div>
 </div>
 
+<!-- Copy Warning / Shock Modal -->
+<div id="copyModal" class="modal-overlay">
+  <div class="modal-content">
+    <h3>Hain?! Copy kyu kar rahi ho? 😱❓</h3>
+    <p>Direct WhatsApp ka button diya toh hai! Itni mehnat kyu karni? Chalo koi na, yeh raha text, chipka do jaake:</p>
+    <div id="copiedTextDisplay"></div>
+    <button class="btn" onclick="closeCopyModal()">Accha baba, jaa rahi hu 🙄</button>
+  </div>
+</div>
+
 <script>
-// Exact number provided by the user
 const MANAS_WHATSAPP_NUMBER = "919634294316"; 
 
 function updateMood(v){
@@ -386,9 +440,32 @@ function updateMood(v){
   textEl.textContent = newText;
 }
 
-// Logic to highlight checked containers (Neo-brutalism active state)
+// Added count parameter for custom animation densities
+function dropEmojis(emojis, count = 70) {
+  for(let i = 0; i < count; i++) {
+    let el = document.createElement('div');
+    el.className = 'falling-emoji';
+    el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+    
+    // Randomize position, duration, and size
+    el.style.left = Math.random() * 100 + 'vw';
+    const fallDuration = Math.random() * 2 + 2; // Between 2 and 4 seconds
+    el.style.animationDuration = fallDuration + 's';
+    el.style.fontSize = (Math.random() * 20 + 20) + 'px'; // Between 20px and 40px
+    
+    document.body.appendChild(el);
+
+    // Cleanup elements after they fall off screen
+    setTimeout(() => {
+      if (document.body.contains(el)) el.remove();
+    }, fallDuration * 1000 + 100);
+  }
+}
+
 document.querySelectorAll('.choice input').forEach(inp => {
   inp.addEventListener('change', () => {
+    
+    // UI toggling for Neo-brutalism highlight
     if(inp.type === 'radio') {
       const groupName = inp.name;
       document.querySelectorAll(`input[name="${groupName}"]`).forEach(radio => {
@@ -396,45 +473,37 @@ document.querySelectorAll('.choice input').forEach(inp => {
       });
     }
     inp.closest('.choice-container').classList.toggle('checked', inp.checked);
+
+    // Emoji falling logic ONLY if the option is checked
+    if(inp.checked) {
+      let emojisToDrop = [];
+      const val = inp.value;
+
+      // Check Q2 matches
+      if (val.includes("Khana")) emojisToDrop = ['🍕', '🍔', '🍟', '🍩', '🍣', '🍜', '🌮', '🥪', '🥟'];
+      else if (val.includes("Call")) emojisToDrop = ['📱', '📞', '🤙', '💬'];
+      else if (val.includes("Foot Massage")) emojisToDrop = ['🦶', '💆‍♀️', '✨', '🌸', '💅'];
+      else if (val.includes("lambi drive")) emojisToDrop = ['🚗', '🏎️', '💨', '🛣️', '❤️'];
+      else if (val.includes("Thodi der chup")) emojisToDrop = ['🤐', '🤫', '😶', '🔇']; // Subtle hit before the dog trap
+      
+      // Check Q3 matches
+      else if (val.includes("Hospital")) emojisToDrop = ['🏥', '💉', '🩺', '💊', '🚑'];
+      else if (val.includes("Neend")) emojisToDrop = ['🥱', '💤', '🛌', '🐼', '🌙'];
+      else if (val.includes("dard")) emojisToDrop = ['🤕', '🩹', '😖', '🦶'];
+      else if (val === "Others") emojisToDrop = ['👽', '🛸', '🤷‍♀️', '🌪️', '💣'];
+
+      // Fire animation if we have emojis matched
+      if (emojisToDrop.length > 0) {
+        dropEmojis(emojisToDrop);
+      }
+    }
   });
 });
 
 let finalMessage = "";
 
-function releaseTheHounds() {
-  const emojis = ['🐶', '🐕', '🐩', '🐾'];
-  const dogCount = 100; // Falling dogs count
-  
-  for(let i = 0; i < dogCount; i++) {
-    let dog = document.createElement('div');
-    dog.className = 'dog-emoji';
-    dog.innerText = emojis[Math.floor(Math.random() * emojis.length)];
-    dog.style.left = Math.random() * 100 + 'vw';
-    dog.style.top = '-50px';
-    dog.style.fontSize = (Math.random() * 25 + 15) + 'px';
-    
-    // Randomize fall duration and rotation
-    const fallDuration = Math.random() * 3 + 2; 
-    dog.style.transition = `transform ${fallDuration}s linear, top ${fallDuration}s ease-in`;
-    
-    document.body.appendChild(dog);
-
-    // Trigger animation slightly after appending
-    setTimeout(() => {
-      dog.style.top = '120vh'; // Fall past the bottom of the screen
-      dog.style.transform = `rotate(${Math.random() * 720 - 360}deg) translateX(${Math.random() * 200 - 100}px)`;
-    }, 50);
-
-    // Cleanup elements after they fall
-    setTimeout(() => {
-      dog.remove();
-    }, fallDuration * 1000 + 100);
-  }
-}
-
 function closeModal() {
   document.getElementById('dogModal').classList.remove('active');
-  // Uncheck the problematic radio button to force a new selection
   const badOption = document.querySelector('input[value="Thodi der chup ho jaoge tum"]');
   if(badOption) {
     badOption.checked = false;
@@ -446,20 +515,28 @@ function buildReview(){
   // 1. Check for the secret joke condition first
   const needEl = document.querySelector('#needGroup input:checked');
   if (needEl && needEl.value === "Thodi der chup ho jaoge tum") {
-    releaseTheHounds();
+    dropEmojis(['🐶', '🐕', '🐩', '🐾']);
     setTimeout(() => {
       document.getElementById('dogModal').classList.add('active');
-    }, 800); // Show popup slightly after dogs start falling
+    }, 800); 
     return; // Stop submission!
   }
 
-  // 2. Gather data if we pass the joke check
+  // 2. Gather data
   const mood = document.getElementById('moodSlider').value;
   const need = needEl ? needEl.value : "(bataya nahi, khud samjho)";
   
-  const badEl = Array.from(document.querySelectorAll('#badGroup input:checked')).map(i => i.value);
-  const bad = badEl.length ? badEl.join(", ") : "(kuch select nahi kiya)";
+  // Custom logic to grab the "Others" text box value if checked
+  const badElArray = Array.from(document.querySelectorAll('#badGroup input[type="checkbox"]:checked'));
+  const badStrings = badElArray.map(i => {
+    if(i.value === 'Others') {
+      const otherTxt = document.getElementById('otherText').value.trim();
+      return otherTxt ? `Others (${otherTxt})` : `Others (kuch bataya nahi)`;
+    }
+    return i.value;
+  });
   
+  const bad = badStrings.length ? badStrings.join(", ") : "(kuch select nahi kiya)";
   const likes = document.getElementById('likesText').value.trim() || "(kuch nahi likha, bas silence hai)";
 
   const lines = [
@@ -498,10 +575,11 @@ function buildReview(){
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+let shockRainInterval;
+
 function copyResult(){
   const text = decodeURIComponent(finalMessage).replace(/\*/g, '');
   
-  // Create a temporary textarea to safely copy text
   const textArea = document.createElement("textarea");
   textArea.value = text;
   document.body.appendChild(textArea);
@@ -515,8 +593,28 @@ function copyResult(){
   }
   
   document.body.removeChild(textArea);
+
+  // Show the BIG POPUP
+  document.getElementById('copiedTextDisplay').textContent = text;
+  document.getElementById('copyModal').classList.add('active');
+
+  // Trigger continuous SHOCKING EMOJI rain
+  const shockEmojis = ['❓', '❗', '⁉️', '😱', '🤯', '😲', '🔴'];
+  
+  // Initial big burst
+  dropEmojis(shockEmojis, 40); 
+  
+  // Continuous rain loop while modal is open
+  shockRainInterval = setInterval(() => {
+    dropEmojis(shockEmojis, 15);
+  }, 1000); // Drops 15 emojis every 1 second continuously
+}
+
+function closeCopyModal() {
+  document.getElementById('copyModal').classList.remove('active');
+  // Stop the continuous rain when she closes the popup
+  clearInterval(shockRainInterval);
 }
 </script>
 </body>
 </html>
-```
