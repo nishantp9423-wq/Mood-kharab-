@@ -1,0 +1,522 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mood Check-in for the Process Princess</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-color: #E0E7FF; /* Cool light indigo */
+    --card-bg: #FFFFFF;
+    --text-main: #0F172A;
+    --text-muted: #475569;
+    --primary: #6366F1; /* Indigo */
+    --secondary: #EC4899; /* Pink */
+    --accent: #14B8A6; /* Teal */
+    --warning: #F59E0B; /* Amber */
+    --border-dark: 3px solid #0F172A;
+    --brutal-shadow: 6px 6px 0px #0F172A;
+    --brutal-shadow-hover: 2px 2px 0px #0F172A;
+  }
+
+  * { box-sizing: border-box; }
+  
+  body {
+    background-color: var(--bg-color);
+    background-image: 
+      radial-gradient(at 10% 10%, rgba(236, 72, 153, 0.15) 0px, transparent 50%),
+      radial-gradient(at 90% 90%, rgba(20, 184, 166, 0.15) 0px, transparent 50%);
+    color: var(--text-main);
+    font-family: 'Outfit', sans-serif;
+    margin: 0;
+    padding: 32px 16px 60px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    overflow-x: hidden;
+  }
+
+  .page { width: 100%; max-width: 480px; position: relative; z-index: 10; }
+  
+  h1, h2, h3 { 
+    font-family: 'Space Grotesk', sans-serif; 
+    font-weight: 700; 
+    margin: 0; 
+    line-height: 1.2; 
+    letter-spacing: -0.02em;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: var(--border-dark);
+    border-radius: 16px;
+    padding: 28px 24px;
+    box-shadow: var(--brutal-shadow);
+    margin-bottom: 24px;
+    transition: all 0.2s ease;
+  }
+
+  .hero { text-align: center; padding: 10px 4px 30px; }
+  .hero h1 { font-size: 1.8rem; color: var(--primary); text-shadow: 2px 2px 0px rgba(99, 102, 241, 0.2); }
+  .hero p { color: var(--text-muted); font-size: 1rem; margin-top: 12px; line-height: 1.5; font-weight: 500;}
+
+  .q-block + .q-block { margin-top: 32px; }
+  .q-num { 
+    display: inline-block;
+    background: var(--secondary); 
+    color: #fff; 
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem; 
+    font-weight: 700; 
+    padding: 4px 10px;
+    border-radius: 8px;
+    border: 2px solid var(--text-main);
+    margin-bottom: 10px; 
+    transform: rotate(-3deg);
+  }
+  .q-text { font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; line-height: 1.4; }
+
+  .choices { display: flex; flex-direction: column; gap: 12px; }
+  
+  .choice-container {
+    display: flex;
+    flex-direction: column;
+    background: #F8FAFC;
+    border-radius: 12px;
+    border: 2px solid #CBD5E1;
+    transition: all 0.2s ease;
+    overflow: hidden;
+  }
+  
+  .choice-container:hover { border-color: var(--primary); }
+  
+  .choice-container.checked {
+    border: var(--border-dark);
+    background: #FEF08A; /* Fun yellow */
+    box-shadow: 3px 3px 0px #0F172A;
+    transform: translate(-2px, -2px);
+  }
+  
+  .choice {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .choice input { 
+    width: 20px; height: 20px; flex-shrink: 0; cursor: pointer;
+    accent-color: var(--primary);
+  }
+  
+  .quirky-hint {
+    display: none;
+    padding: 0 16px 14px 48px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .choice-container:has(input:checked) .quirky-hint {
+    display: block;
+    animation: slideDown 0.3s ease;
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  textarea {
+    width: 100%;
+    border-radius: 12px;
+    border: 2px solid #CBD5E1;
+    background: #F8FAFC;
+    padding: 14px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-main);
+    resize: vertical;
+    min-height: 100px;
+    transition: all 0.2s ease;
+  }
+  textarea:focus { 
+    outline: none; 
+    border: var(--border-dark);
+    box-shadow: 3px 3px 0px #0F172A;
+    background: #fff;
+  }
+
+  /* Slider Styling */
+  input[type=range] { 
+    width: 100%; 
+    accent-color: var(--secondary); 
+    margin-top: 8px; 
+    height: 8px;
+  }
+  .slider-labels { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); margin-top: 8px; font-weight: 600;}
+  
+  .mood-display {
+    text-align: center;
+    margin-top: 20px;
+    padding: 16px;
+    background: #fff;
+    border-radius: 12px;
+    border: 2px dashed var(--primary);
+  }
+  .slider-val { font-family: 'Space Grotesk', sans-serif; font-size: 2rem; font-weight: 700; color: var(--secondary); }
+  .quirky-text { font-size: 1rem; font-weight: 600; color: var(--text-main); margin-top: 8px;}
+
+  .btn {
+    font-family: 'Space Grotesk', sans-serif; 
+    font-weight: 700; 
+    font-size: 1.1rem;
+    border: var(--border-dark); 
+    border-radius: 12px; 
+    padding: 16px 24px; 
+    cursor: pointer;
+    color: #fff; 
+    background: var(--primary); 
+    width: 100%;
+    box-shadow: var(--brutal-shadow);
+    transition: all 0.15s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .btn:hover, .btn:active { 
+    transform: translate(4px, 4px); 
+    box-shadow: var(--brutal-shadow-hover); 
+  }
+  
+  .btn.whatsapp { background: #10B981; margin-top: 16px; color: #0F172A;}
+  .btn.secondary { background: #fff; color: var(--text-main); margin-top: 12px; }
+
+  #reviewSection { display: none; }
+  .review-line {
+    background: #F1F5F9;
+    border-left: 4px solid var(--secondary);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    font-weight: 500;
+  }
+  .review-line b { color: var(--text-main); display: block; font-size: 0.85rem; margin-bottom: 4px; font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; letter-spacing: 0.02em;}
+
+  .signature { text-align: center; margin-top: 30px; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; }
+  .note { font-size: 0.85rem; color: var(--text-muted); text-align: center; margin-top: 12px; font-weight: 500;}
+
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.8);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(4px);
+    padding: 20px;
+  }
+  .modal-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .modal-content {
+    background: var(--card-bg);
+    border: var(--border-dark);
+    box-shadow: 8px 8px 0px var(--secondary);
+    border-radius: 16px;
+    padding: 30px 24px;
+    text-align: center;
+    max-width: 400px;
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .modal-overlay.active .modal-content {
+    transform: scale(1);
+  }
+  .modal-content h3 { font-size: 1.5rem; color: var(--secondary); margin-bottom: 12px;}
+  .modal-content p { font-size: 1.1rem; font-weight: 600; line-height: 1.5; margin-bottom: 24px;}
+
+  .dog-emoji {
+    position: fixed;
+    z-index: 999;
+    pointer-events: none;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="hero">
+    <h1>Mood Check-in 📋✨</h1>
+    <p>High maintenance cheezon ka khayal rakhna padta hai na. Bas 2 minute de do—batao aaj kya hua aur aapko kya chahiye. Baaki mujh pe chhor do.</p>
+  </div>
+
+  <div class="card" id="formSection">
+
+    <div class="q-block">
+      <div class="q-num">Q1</div>
+      <div class="q-text">Sach sach batao, aaj mood kitna kharab hai? (1 se 10)</div>
+      <input type="range" min="1" max="10" value="1" id="moodSlider" oninput="updateMood(this.value)">
+      <div class="slider-labels"><span>Bas thoda sa (1)</span><span>Hadd se zyada (10)</span></div>
+      
+      <div class="mood-display">
+        <div class="slider-val" id="moodVal">1</div>
+        <div class="quirky-text" id="quirkyText">Chhoti moti baat hogi, araam se solve kar lenge. 😊</div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-num">Q2</div>
+      <div class="q-text">Abhi sabse zyada kya karne ka mann kar raha hai? (Jo marzi chuno)</div>
+      <div class="choices" id="needGroup">
+        
+        <label class="choice-container">
+          <div class="choice"><input type="radio" name="need" value="Call karo chup chap"> Call karo chup chap</div>
+          <div class="quirky-hint">Phone hath mein hi hai, bas order ka wait kar raha tha! 📱</div>
+        </label>
+        
+        <label class="choice-container">
+          <div class="choice"><input type="radio" name="need" value="Thodi der chup ho jaoge tum"> Thodi der chup ho jaoge tum?</div>
+          <div class="quirky-hint">🤐 Zipper locked! Ekdum shant. Promise. (Are you sure about this one though?)</div>
+        </label>
+        
+        <label class="choice-container">
+          <div class="choice"><input type="radio" name="need" value="Virtual Foot Massage and Spa"> Virtual Foot Massage and Spa 💆‍♀️</div>
+          <div class="quirky-hint">Lijiye madam, session shuru! *pressing toes virtually* 🦶✨</div>
+        </label>
+        
+        <label class="choice-container">
+          <div class="choice"><input type="radio" name="need" value="Aapse milna ya lambi drive pe jana"> Aapse milna ya lambi drive pe jana 🚗</div>
+          <div class="quirky-hint">Engine already cold start ho chuka hai, bas location bhejo! 🏎️💨</div>
+        </label>
+        
+        <label class="choice-container">
+          <div class="choice"><input type="radio" name="need" value="Khana order karo fatafat"> Ek hi cheez mujhe shant kar sakti hai—KHANA! Fatafat order karo ya khila do please 🍕</div>
+          <div class="quirky-hint">Arre arre arre, itni bhukh! Pet pooja sabse upar, menu abhi bhejta hoon! 🍔🍟</div>
+        </label>
+
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-num">Q3</div>
+      <div class="q-text">Kis baat, insaan, ya wajah se gussa aa raha hai? (Bhadhas nikal lo)</div>
+      <div class="choices" id="badGroup">
+        
+        <label class="choice-container">
+          <div class="choice"><input type="checkbox" value="Hospital wale log"> Hospital / Kaam</div>
+          <div class="quirky-hint">Yahi toh kamine log hain, mere bechare chehre ka noor barbad karenge! 😤🏥</div>
+        </label>
+        
+        <label class="choice-container">
+          <div class="choice"><input type="checkbox" value="Neend puri na hona"> Neend</div>
+          <div class="quirky-hint">Neend puri ho nahi rahi hai, kya hi karun main! 🥱 Panda ban gayi hoon.</div>
+        </label>
+        
+        <label class="choice-container">
+          <div class="choice"><input type="checkbox" value="Hathon aur pairon mein dard"> Mere pair aur mere hathon mein dard ho raha hai</div>
+          <div class="quirky-hint">Arre itne golu molu hathon pairon par dard hoga toh madam kaise chalega? Lagta hai Virtual Foot Massage automatically select karna padega as a solution! 🥺💆‍♀️</div>
+        </label>
+
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-num">Q4</div>
+      <div class="q-text">Iss 'Namuna' se kya umeed kar rahe ho abhi?</div>
+      <textarea id="likesText" placeholder="Yahan likho... aur haan, filter mat lagana! Jo mann mein aaye bol do."></textarea>
+    </div>
+
+    <div class="q-block">
+      <button class="btn" onclick="buildReview()">Submit Report 🚀</button>
+    </div>
+  </div>
+
+  <div class="card" id="reviewSection">
+    <h2 style="margin-bottom:20px; color: var(--primary);">Report Generate Ho Gayi Ji! 📝</h2>
+    <div id="reviewBody"></div>
+    <button class="btn whatsapp" id="sendBtn">Bhejo WhatsApp pe 💬</button>
+    <button class="btn secondary" onclick="copyResult()">Copy kar lo (If WhatsApp fails)</button>
+    <div class="note" id="copyNote"></div>
+  </div>
+
+  <div class="signature">"Process princess, trust the process." 🌷</div>
+
+</div>
+
+<div id="dogModal" class="modal-overlay">
+  <div class="modal-content">
+    <h3>Ruk jao! 🛑</h3>
+    <p>You can't select this option! Meri dictionary main I can't shut it! 🐶🤪</p>
+    <button class="btn" onclick="closeModal()">Thik hai, change karti hu 🙄</button>
+  </div>
+</div>
+
+<script>
+// Exact number provided by the user
+const MANAS_WHATSAPP_NUMBER = "919634294316"; 
+
+function updateMood(v){
+  document.getElementById('moodVal').textContent = v;
+  
+  const textEl = document.getElementById('quirkyText');
+  let newText = "";
+  
+  if(v >= 1 && v <= 3) {
+    newText = "Chhoti moti baat hogi, araam se solve kar lenge. 😊";
+  } else if (v >= 4 && v <= 6) {
+    newText = "Lagta hai ICU me kisi ne dimaag kharab kiya hai. Athru na le aana bas! 🥺";
+  } else if (v >= 7 && v <= 9) {
+    newText = "Khatre ki ghanti! 🚨 Maunjulika mode on hone wala hai!";
+  } else if (v == 10) {
+    newText = "ALERT! 🚨 High Maintenance Mode fully activated! Jaldi Submit dabao, main high-protein, pet bharne wala khana leke cloud kitchen se daudta hua aa raha hoon! 🏃‍♂️💨";
+  }
+  
+  textEl.textContent = newText;
+}
+
+// Logic to highlight checked containers (Neo-brutalism active state)
+document.querySelectorAll('.choice input').forEach(inp => {
+  inp.addEventListener('change', () => {
+    if(inp.type === 'radio') {
+      const groupName = inp.name;
+      document.querySelectorAll(`input[name="${groupName}"]`).forEach(radio => {
+        radio.closest('.choice-container').classList.remove('checked');
+      });
+    }
+    inp.closest('.choice-container').classList.toggle('checked', inp.checked);
+  });
+});
+
+let finalMessage = "";
+
+function releaseTheHounds() {
+  const emojis = ['🐶', '🐕', '🐩', '🐾'];
+  const dogCount = 100; // Falling dogs count
+  
+  for(let i = 0; i < dogCount; i++) {
+    let dog = document.createElement('div');
+    dog.className = 'dog-emoji';
+    dog.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+    dog.style.left = Math.random() * 100 + 'vw';
+    dog.style.top = '-50px';
+    dog.style.fontSize = (Math.random() * 25 + 15) + 'px';
+    
+    // Randomize fall duration and rotation
+    const fallDuration = Math.random() * 3 + 2; 
+    dog.style.transition = `transform ${fallDuration}s linear, top ${fallDuration}s ease-in`;
+    
+    document.body.appendChild(dog);
+
+    // Trigger animation slightly after appending
+    setTimeout(() => {
+      dog.style.top = '120vh'; // Fall past the bottom of the screen
+      dog.style.transform = `rotate(${Math.random() * 720 - 360}deg) translateX(${Math.random() * 200 - 100}px)`;
+    }, 50);
+
+    // Cleanup elements after they fall
+    setTimeout(() => {
+      dog.remove();
+    }, fallDuration * 1000 + 100);
+  }
+}
+
+function closeModal() {
+  document.getElementById('dogModal').classList.remove('active');
+  // Uncheck the problematic radio button to force a new selection
+  const badOption = document.querySelector('input[value="Thodi der chup ho jaoge tum"]');
+  if(badOption) {
+    badOption.checked = false;
+    badOption.closest('.choice-container').classList.remove('checked');
+  }
+}
+
+function buildReview(){
+  // 1. Check for the secret joke condition first
+  const needEl = document.querySelector('#needGroup input:checked');
+  if (needEl && needEl.value === "Thodi der chup ho jaoge tum") {
+    releaseTheHounds();
+    setTimeout(() => {
+      document.getElementById('dogModal').classList.add('active');
+    }, 800); // Show popup slightly after dogs start falling
+    return; // Stop submission!
+  }
+
+  // 2. Gather data if we pass the joke check
+  const mood = document.getElementById('moodSlider').value;
+  const need = needEl ? needEl.value : "(bataya nahi, khud samjho)";
+  
+  const badEl = Array.from(document.querySelectorAll('#badGroup input:checked')).map(i => i.value);
+  const bad = badEl.length ? badEl.join(", ") : "(kuch select nahi kiya)";
+  
+  const likes = document.getElementById('likesText').value.trim() || "(kuch nahi likha, bas silence hai)";
+
+  const lines = [
+    { label: "Gusse/Kharab Mood ka Level (1-10)", val: mood },
+    { label: "Abhi kya chahiye?", val: need },
+    { label: "Gusse ki vajah", val: bad },
+    { label: "Namuna ke liye Task", val: likes }
+  ];
+
+  // 3. Populate Review UI
+  const reviewBody = document.getElementById('reviewBody');
+  reviewBody.innerHTML = "";
+  lines.forEach(l => {
+    const div = document.createElement('div');
+    div.className = 'review-line';
+    div.innerHTML = `<b>${l.label}</b>${l.val}`;
+    reviewBody.appendChild(div);
+  });
+
+  // 4. Format WhatsApp Message
+  finalMessage = "👑 *Process Princess Mood Report:* 👑%0A%0A" +
+    lines.map(l => `*${l.label}:* ${l.val}`).join("%0A%0A") + 
+    "%0A%0A_Jaldi action lo Duggal ji!_";
+
+  const waBase = MANAS_WHATSAPP_NUMBER
+    ? `https://wa.me/${MANAS_WHATSAPP_NUMBER}?text=`
+    : `https://wa.me/?text=`;
+    
+  document.getElementById('sendBtn').onclick = () => {
+    window.open(waBase + finalMessage, '_blank');
+  };
+
+  // 5. Swap UI screens
+  document.getElementById('formSection').style.display = 'none';
+  document.getElementById('reviewSection').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function copyResult(){
+  const text = decodeURIComponent(finalMessage).replace(/\*/g, '');
+  
+  // Create a temporary textarea to safely copy text
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  document.body.appendChild(textArea);
+  textArea.select();
+  
+  try {
+    document.execCommand('copy');
+    document.getElementById('copyNote').textContent = "Copy ho gaya ji! Paste karke bhej do.";
+  } catch (err) {
+    document.getElementById('copyNote').textContent = "Copy nahi hua, manually select kar lena.";
+  }
+  
+  document.body.removeChild(textArea);
+}
+</script>
+</body>
+</html>
+```
